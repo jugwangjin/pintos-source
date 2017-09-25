@@ -92,11 +92,7 @@ struct thread
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-<<<<<<< HEAD
     struct list_elem semaelem;          /* Semaphore List element, no more shared with synch.c. */
-=======
-    struct list_elem semaelem;           /* Semaphore List element, no more shared with synch.c. */
->>>>>>> ee24b3133b20b897d2a7fd58c960a53128ca0261
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -107,6 +103,8 @@ struct thread
 
     /* Priority Donation */
     int donated_priority;
+    struct list lock_holding_list;       /* for nested priority donation */
+    struct lock *acquiring_lock;         /* for nested priority donation */
   };
 
 /* If false (default), use round-robin scheduler.

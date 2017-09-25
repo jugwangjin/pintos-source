@@ -22,6 +22,7 @@ struct lock
   {
     struct thread *holder;      /* Thread holding lock (for debugging). */
     struct semaphore semaphore; /* Binary semaphore controlling access. */
+    struct list_elem elem;      /* to manage lock list in struct thread */
   };
 
 void lock_init (struct lock *);
@@ -43,6 +44,9 @@ void cond_broadcast (struct condition *, struct lock *);
 
 /* list_less_func for semaphore_elems */
 bool sema_priority_less (struct list_elem *, struct list_elem *, void *);
+
+/* recursively donate */
+void priority_donation (struct thread *);
 
 /* Optimization barrier.
 
