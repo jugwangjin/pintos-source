@@ -46,7 +46,7 @@ void cond_broadcast (struct condition *, struct lock *);
 bool sema_priority_less (struct list_elem *, struct list_elem *, void *);
 
 /* compare function for semaphores */
-bool thread_priority_less_for_sema (struct list_elem *, struct list_elem *, void *)
+bool thread_priority_less_for_sema (struct list_elem *, struct list_elem *, void *);
 
 /* recursively donate */
 void priority_donation (struct thread *);

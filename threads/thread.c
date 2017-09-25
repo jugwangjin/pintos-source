@@ -611,7 +611,7 @@ allocate_tid (void)
   return tid;
 }
 
-/* get_priority function, from pointer */
+/* get_priority function, from pointer */
 int
 thread_get_priority_from_pointer (struct thread *t)
 {

@@ -128,6 +128,7 @@ sema_up (struct semaphore *sema)
     thread_unblock (list_entry (thread_to_unblock,
                                 struct thread, elem));
   }
+  priority_donation(thread_current ());
   sema->value++;
   intr_set_level (old_level);
   /* add yield, to make highest one run */
