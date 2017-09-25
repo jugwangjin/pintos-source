@@ -123,7 +123,7 @@ sema_up (struct semaphore *sema)
   old_level = intr_disable ();
   if (!list_empty (&sema->waiters)) 
   {
-    thread_to_unblock = list_max (&sema->waiters, thread_priority_less, NULL);
+    thread_to_unblock = list_max (&sema->waiters, thread_priority_less_for_sema, NULL);
     list_remove (thread_to_unblock);
     thread_unblock (list_entry (thread_to_unblock,
                                 struct thread, elem));
@@ -395,6 +395,23 @@ sema_priority_less (struct list_elem *sema_1,
     return false;
 }
 
+/* compare function for semaphores */
+bool
+thread_priority_less_for_sema (struct list_elem *thread_1,
+                      struct list_elem *thread_2, void *aux UNUSED)
+{
+  int thread_1_pr;
+  int thread_2_pr;
+
+  thread_1_pr = thread_get_priority_from_pointer(list_entry(thread_1, struct thread, elem));
+  thread_2_pr = thread_get_priority_from_pointer(list_entry(thread_2, struct thread, elem));
+
+  if (thread_1_pr<thread_2_pr)
+    return true;
+  else
+    return false;
+}
+
 /* recursively donate priority */
 void
 priority_donation (struct thread *cur)
@@ -409,7 +426,8 @@ priority_donation (struct thread *cur)
 
   while(listElem != list_end(&cur->lock_holding_list))
   {
-    threadElem = list_max(&(list_entry (listElem, struct lock, elem)->semaphore.waiters), thread_priority_less, NULL);
+    threadElem = list_max(&(list_entry (listElem, struct lock, elem)->semaphore.waiters), 
+                            thread_priority_less_for_sema, NULL);
     if(threadElem != list_end(&list_entry (listElem, struct lock, elem)->semaphore.waiters))
     {
       tmp_priority = thread_get_priority_from_pointer(list_entry(threadElem, struct thread, elem));

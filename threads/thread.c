@@ -621,7 +621,7 @@ thread_get_priority_from_pointer (struct thread *t)
     return t->donated_priority;
 }
 
-/* compare function */
+/* compare function for threads*/
 bool
 thread_priority_less (struct list_elem *thread_1,
                       struct list_elem *thread_2, void *aux UNUSED)
