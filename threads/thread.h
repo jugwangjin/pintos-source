@@ -24,6 +24,26 @@ typedef int tid_t;
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
 
+
+typedef int pfloat;
+#define F 16384
+#define ITOF(x) (pfloat) (x * F)
+#define FTOI(x) (int)(x / F)
+#define ADD(x, y) (x + y)
+#define SUB(x, y) (x - y)
+#define ADDn(x, n) (x + n * F)
+#define SUBn(x, n) (x - n * F)
+#define MULT(x, y) (((int64_t) x) * y / F)
+#define MULTn(x, n) (x * n)
+#define DIV(x, y) (((int64_t) x) * F / y)
+#define DIVn(x, n) (x / n)
+#define PRI_UPDATE(recent_cpu, nice) FTOI(SUB(SUB(ITOF(PRI_MAX), DIVn(recent_cpu, 4)), MULTn(ITOF(nice), 2)))
+#define CPU_UPDATE(load, recent_cpu, nice) ADDn(MULT(DIV(MULTn(load, 2), ADDn(MULTn(load, 2), 1)), recent_cpu), nice)
+#define LOAD_UPDATE(load, ready) ADD(MULT(DIVn(ITOF(59), 60), load), DIVn(ITOF(ready), 60))
+
+
+
+
 /* A kernel thread or user process.
 
    Each thread structure is stored in its own 4 kB page.  The
@@ -89,6 +109,10 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
+    struct list_elem slpelem;           /* List element for sleeping threads list */
+    int64_t alarm;                      /* Alarm schedule */
+    int nice;                           /* Niceness */
+    pfloat recent_cpu;                  /* Recent CPU occupation */
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
@@ -111,6 +135,8 @@ struct thread
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
+/* load_avg and ready_trheads are used in both timer.c and thread.c */
+extern pfloat load_avg;
 
 void thread_init (void);
 void thread_start (void);
@@ -143,10 +169,24 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
+/* Additional functions for alarm clock */
+void thread_sleep(int64_t);
+int64_t thread_wake(int64_t);
+
+/* Maximum OS timer ticks. */
+#define MAX_TIMER 0x7fffffffffffffLL
+
+/*Additional functions for priority scheduling (1-3) */
+void update_cpu (struct thread *t, void *aux);
+void update_priority (struct thread *t, void *aux);
+void thread_relocate (void);
+
 /* thread_get_priority_by_pointer */
 int thread_get_priority_from_pointer (struct thread *);
 
 /* added for less function */
 bool thread_priority_less (struct list_elem *, struct list_elem *, void *);
+
+int real_ready_threads(void);
 
 #endif /* threads/thread.h */

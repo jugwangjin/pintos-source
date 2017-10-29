@@ -117,6 +117,7 @@ sema_up (struct semaphore *sema)
 {
   enum intr_level old_level;
   struct list_elem *thread_to_unblock;
+  bool should_yield=true;
 
   ASSERT (sema != NULL);
 
@@ -127,12 +128,19 @@ sema_up (struct semaphore *sema)
     list_remove (thread_to_unblock);
     thread_unblock (list_entry (thread_to_unblock,
                                 struct thread, elem));
+    /*if(!thread_mlfqs)
+      intr_yield_on_return ();
+  */ 
   }
   priority_donation(thread_current ());
   sema->value++;
   intr_set_level (old_level);
-  /* add yield, to make highest one run */
-  thread_yield ();
+  thread_yield ();  
+/* add yield, to make highest one run */
+/*
+  if(should_yield)
+    thread_yield ();
+*/
 }
 
 static void sema_test_helper (void *sema_);
@@ -268,7 +276,6 @@ lock_release (struct lock *lock)
     }
     search = list_next(search);
   }
-
   lock->holder = NULL;
   sema_up (&lock->semaphore);
 }  
